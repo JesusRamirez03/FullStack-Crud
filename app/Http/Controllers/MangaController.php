@@ -11,13 +11,13 @@ class MangaController extends Controller
     public function index()
     {
         $mangas = Manga::all();  // Obtener todos los mangas
-        return view('manga.index', compact('mangas'));
+        return view('manga-crud.index', compact('mangas'));
     }
 
     // Mostrar el formulario para agregar un nuevo manga
     public function create()
     {
-        return view('manga.create');
+        return view('manga-crud.create');
     }
 
     // Almacenar un nuevo manga
@@ -36,32 +36,40 @@ class MangaController extends Controller
         return redirect()->route('manga-crud.index');
     }
 
-    // Mostrar el formulario para editar un manga
-    public function edit(Manga $manga)
+    public function edit($id)
     {
-        return view('manga.edit', compact('manga'));
+        $manga = Manga::findOrFail($id); // Busca el manga por su ID o lanza un error 404
+        return view('manga-crud.edit', compact('manga')); // Retorna una vista para editar
     }
-
-    // Actualizar un manga
-    public function update(Request $request, Manga $manga)
+    
+    public function update(Request $request, $id)
     {
+        $manga = Manga::findOrFail($id);
+    
+        // Validar los datos enviados
         $request->validate([
             'titulo' => 'required|string|max:255',
             'autor' => 'required|string|max:255',
             'descripcion' => 'required|string',
             'genero' => 'required|string|max:255',
-            'numero_de_tomos' => 'required|integer',
+            'numero_de_tomos' => 'required|integer|min:1',
             'fecha_lanzamiento' => 'required|date',
         ]);
-
-        $manga->update($request->all());  // Actualizar el manga
-        return redirect()->route('manga-crud.index');
+    
+        // Actualizar el manga con los nuevos datos
+        $manga->update($request->all());
+    
+        // Redirigir al índice con un mensaje de éxito
+        return redirect()->route('manga-crud.index')->with('success', 'Manga actualizado exitosamente.');
     }
+    
 
-    // Eliminar un manga
-    public function destroy(Manga $manga)
+    public function destroy($id)
     {
-        $manga->delete();  // Eliminar el manga
-        return redirect()->route('manga-crud.index');
+        $manga = Manga::findOrFail($id);
+        $manga->delete();
+    
+        return redirect()->route('manga-crud.index')->with('success', 'Manga eliminado exitosamente.');
     }
+    
 }
